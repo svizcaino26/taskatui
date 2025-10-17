@@ -3,12 +3,33 @@ use sqlx::FromRow;
 
 #[derive(Debug, FromRow)]
 pub struct Task {
-    id: u32,
+    id: i32,
     title: String,
     description: Option<String>,
-    subtasks: Option<Vec<String>>,
-    follow_up_date: NaiveDate,
+    // will implement this at a later point
+    // subtasks: Vec<SubTask>,
+    follow_up_date: Option<NaiveDate>,
     last_update: Option<NaiveDate>,
-    update_freq: Frequency, // Daily - Weekly - Custom
+    // update_freq: Option<Frequency>, // Daily - Weekly - Custom
     completed: bool,
+}
+
+// will implement at later point
+// #[derive(FromRow, Debug)]
+// struct SubTask {
+//     task_id: u32,
+//     text: String,
+//     completed: bool,
+// }
+
+// #[derive(Debug)]
+// pub enum Frequency {
+//     Daily,
+//     Weekly,
+//     Custom(NaiveDate),
+// }
+
+#[derive(Debug)]
+pub struct NewTask {
+    title: String,
 }
