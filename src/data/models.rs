@@ -1,17 +1,18 @@
 use chrono::NaiveDate;
+use serde::{Deserialize, Serialize};
 use sqlx::FromRow;
 
-#[derive(Debug, FromRow)]
+#[derive(Debug, FromRow, Serialize, Deserialize)]
 pub struct Task {
-    id: i32,
-    title: String,
-    description: Option<String>,
+    pub id: i64,
+    pub title: String,
+    pub description: Option<String>,
     // will implement this at a later point
     // subtasks: Vec<SubTask>,
-    follow_up_date: Option<NaiveDate>,
-    last_update: Option<NaiveDate>,
+    pub follow_up_date: Option<NaiveDate>,
+    pub last_update: Option<NaiveDate>,
     // update_freq: Option<Frequency>, // Daily - Weekly - Custom
-    completed: bool,
+    pub completed: bool,
 }
 
 // will implement at later point
@@ -32,4 +33,15 @@ pub struct Task {
 #[derive(Debug)]
 pub struct NewTask {
     title: String,
+}
+
+impl NewTask {
+    pub fn new(title: &str) -> Self {
+        NewTask {
+            title: title.to_string(),
+        }
+    }
+    pub fn title(&self) -> &String {
+        &self.title
+    }
 }
