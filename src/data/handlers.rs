@@ -8,8 +8,8 @@ impl Task {
         let task = sqlx::query_as!(
             Self,
             r#"
-            INSERT INTO tasks(title, completed)
-            VALUES(?1, ?2)
+            INSERT INTO tasks(title, completed, last_update)
+            VALUES(?1, ?2, DATE('now', 'localtime'))
             RETURNING id, title, description,
             follow_up_date as "follow_up_date: NaiveDate",
             last_update as "last_update: NaiveDate",
@@ -29,7 +29,7 @@ impl Task {
         sqlx::query!(
             r#"
         UPDATE tasks
-        SET completed = true
+        SET completed = true, last_update = DATE('now', 'localtime')
         WHERE id = ?1
         "#,
             id
@@ -38,5 +38,23 @@ impl Task {
         .await?;
 
         Ok(())
+    }
+
+    pub async fn get_pending_tasks(pool: &SqlitePool) -> anyhow::Result<Vec<Task>> {
+        let tasks = sqlx::query_as!(
+            Self,
+            r#"
+            SELECT id, title, description,
+            follow_up_date as "follow_up_date: NaiveDate",
+            last_update as "last_update: NaiveDate",
+            completed as "completed: bool"
+            FROM tasks
+            WHERE completed = false
+            "#
+        )
+        .fetch_all(pool)
+        .await?;
+
+        Ok(tasks)
     }
 }
