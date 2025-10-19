@@ -23,4 +23,20 @@ impl Task {
 
         Ok(task)
     }
+
+    pub async fn complete_task(&self, pool: &SqlitePool) -> anyhow::Result<()> {
+        let id = self.id;
+        sqlx::query!(
+            r#"
+        UPDATE tasks
+        SET completed = true
+        WHERE id = ?1
+        "#,
+            id
+        )
+        .execute(pool)
+        .await?;
+
+        Ok(())
+    }
 }
