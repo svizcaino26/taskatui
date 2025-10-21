@@ -7,21 +7,19 @@ pub struct Task {
     pub id: i64,
     pub title: String,
     pub description: Option<String>,
-    // will implement this at a later point
-    // subtasks: Vec<SubTask>,
     pub follow_up_date: Option<NaiveDate>,
     pub last_update: Option<NaiveDate>,
     // update_freq: Option<Frequency>, // Daily - Weekly - Custom
     pub completed: bool,
 }
 
-// will implement at later point
-// #[derive(FromRow, Debug)]
-// struct SubTask {
-//     task_id: u32,
-//     text: String,
-//     completed: bool,
-// }
+#[derive(FromRow, Debug)]
+pub struct SubTask {
+    pub id: i64,
+    pub task_id: i64,
+    pub description: String,
+    pub completed: bool,
+}
 
 // #[derive(Debug)]
 // pub enum Frequency {

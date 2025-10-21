@@ -1,4 +1,4 @@
-use crate::data::models::{NewTask, Task};
+use crate::data::models::{NewTask, SubTask, Task};
 use chrono::NaiveDate;
 use sqlx::SqlitePool;
 
@@ -56,5 +56,27 @@ impl Task {
         .await?;
 
         Ok(tasks)
+    }
+
+    pub async fn add_sub_task(
+        &self,
+        pool: &SqlitePool,
+        description: &str,
+    ) -> anyhow::Result<SubTask> {
+        let sub_task = sqlx::query_as!(
+            SubTask,
+            r#"
+            INSERT INTO sub_tasks (task_id, description, completed)
+            VALUES(?1, ?2, ?3)
+            RETURNING id, task_id, description, completed as "completed: bool"
+            "#,
+            self.id,
+            description,
+            false
+        )
+        .fetch_one(pool)
+        .await?;
+
+        Ok(sub_task)
     }
 }

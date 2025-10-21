@@ -1,0 +1,8 @@
+CREATE TABLE IF NOT EXISTS sub_tasks
+(
+    id INTEGER PRIMARY KEY NOT NULL,
+    task_id INTEGER NOT NULL,
+    description TEXT NOT NULL,
+    completed BOOLEAN DEFAULT FALSE NOT NULL,
+    FOREIGN KEY (task_id) REFERENCES tasks (id)
+);
