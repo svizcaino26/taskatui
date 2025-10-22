@@ -41,7 +41,7 @@ impl Task {
         Ok(())
     }
 
-    pub async fn delete_task(&self, pool: &SqlitePool) -> anyhow::Result<()> {
+    pub async fn delete(&self, pool: &SqlitePool) -> anyhow::Result<()> {
         sqlx::query!(
             r#"
         DELETE FROM tasks
@@ -110,6 +110,20 @@ impl SubTask {
         .await?;
 
         Ok(sub_tasks)
+    }
+
+    pub async fn delete(&self, pool: &SqlitePool) -> anyhow::Result<()> {
+        sqlx::query!(
+            r#"
+        DELETE FROM sub_tasks
+        WHERE id = ?1
+        "#,
+            self.id
+        )
+        .execute(pool)
+        .await?;
+
+        Ok(())
     }
 }
 
