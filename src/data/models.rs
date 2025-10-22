@@ -13,6 +13,12 @@ pub struct Task {
     pub completed: bool,
 }
 
+#[derive(Debug)]
+pub struct TaskDetail {
+    pub task: Task,
+    pub subtasks: Vec<SubTask>,
+}
+
 #[derive(FromRow, Debug)]
 pub struct SubTask {
     pub id: i64,
