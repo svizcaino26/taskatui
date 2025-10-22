@@ -41,6 +41,20 @@ impl Task {
         Ok(())
     }
 
+    pub async fn delete_task(&self, pool: &SqlitePool) -> anyhow::Result<()> {
+        sqlx::query!(
+            r#"
+        DELETE FROM tasks
+        WHERE id = ?1
+        "#,
+            self.id
+        )
+        .execute(pool)
+        .await?;
+
+        Ok(())
+    }
+
     pub async fn get_pending_tasks(pool: &SqlitePool) -> anyhow::Result<Vec<Task>> {
         let tasks = sqlx::query_as!(
             Self,
