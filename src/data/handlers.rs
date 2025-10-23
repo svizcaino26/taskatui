@@ -143,4 +143,19 @@ impl TaskDetail {
             })
             .collect()
     }
+
+    pub async fn remove_subtask(
+        &mut self,
+        subtask_id: i64,
+        pool: &SqlitePool,
+    ) -> anyhow::Result<()> {
+        if let Some(subtask) = self.subtasks.iter().find(|st| st.id == subtask_id) {
+            subtask.delete(pool).await?;
+        }
+
+        // Update in-memory vector after success
+        self.subtasks.retain(|st| st.id != subtask_id);
+
+        Ok(())
+    }
 }
