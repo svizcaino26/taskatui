@@ -19,6 +19,11 @@ pub struct TaskDetail {
     pub subtasks: Vec<SubTask>,
 }
 
+#[derive(Debug)]
+pub struct TaskDetailManager {
+    pub list: Vec<TaskDetail>,
+}
+
 #[derive(FromRow, Debug)]
 pub struct SubTask {
     pub id: i64,
