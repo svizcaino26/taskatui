@@ -62,6 +62,9 @@ async fn main() -> anyhow::Result<()> {
     manager
         .add_task("This is created from the manager", &pool)
         .await?;
+    manager
+        .add_subtask(1, "subtask added from TDM", &pool)
+        .await?;
 
     println!("===== AFTER THE UPDATE =====");
     debug_print(&manager);

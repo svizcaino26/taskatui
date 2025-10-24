@@ -285,4 +285,17 @@ impl TaskDetailManager {
 
         Ok(())
     }
+
+    pub async fn add_subtask(
+        &mut self,
+        task_id: i64,
+        description: &str,
+        pool: &SqlitePool,
+    ) -> anyhow::Result<()> {
+        if let Some(task_detail) = self.list.iter_mut().find(|td| td.task.id == task_id) {
+            let new_subtask = task_detail.task.add_sub_task(pool, description).await?;
+            task_detail.subtasks.push(new_subtask);
+        }
+        Ok(())
+    }
 }
