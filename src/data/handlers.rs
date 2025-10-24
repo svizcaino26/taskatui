@@ -41,6 +41,26 @@ impl Task {
         Ok(())
     }
 
+    pub async fn edit_description(
+        &self,
+        new_description: &str,
+        pool: &SqlitePool,
+    ) -> anyhow::Result<()> {
+        sqlx::query!(
+            r#"
+        UPDATE tasks
+        SET description = ?1
+        WHERE id = ?2
+        "#,
+            new_description,
+            self.id
+        )
+        .execute(pool)
+        .await?;
+
+        Ok(())
+    }
+
     pub async fn complete_task(&self, pool: &SqlitePool) -> anyhow::Result<()> {
         let id = self.id;
         sqlx::query!(
@@ -234,6 +254,23 @@ impl TaskDetailManager {
         if let Some(task_detail) = self.list.iter_mut().find(|td| td.task.id == task_id) {
             task_detail.task.edit_title(new_title, pool).await?;
             task_detail.task.title = new_title.to_string()
+        }
+
+        Ok(())
+    }
+
+    pub async fn edit_task_description(
+        &mut self,
+        new_descripton: &str,
+        task_id: i64,
+        pool: &SqlitePool,
+    ) -> anyhow::Result<()> {
+        if let Some(task_detail) = self.list.iter_mut().find(|td| td.task.id == task_id) {
+            task_detail
+                .task
+                .edit_description(new_descripton, pool)
+                .await?;
+            task_detail.task.description = Some(new_descripton.to_string())
         }
 
         Ok(())

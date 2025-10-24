@@ -55,6 +55,9 @@ async fn main() -> anyhow::Result<()> {
     manager
         .edit_task_title("the new title", t1.id, &pool)
         .await?;
+    manager
+        .edit_task_description("the new task description", t1.id, &pool)
+        .await?;
 
     println!("===== AFTER THE UPDATE =====");
     debug_print(&manager);
@@ -66,6 +69,7 @@ async fn main() -> anyhow::Result<()> {
 fn debug_print(manager: &TaskDetailManager) {
     for td in &manager.list {
         println!("Task {}: {}", td.task.id, td.task.title);
+        println!("Description: {:?}", &td.task.description);
         for st in &td.subtasks {
             println!("  - SubTask {}: {}", st.id, st.description);
         }
