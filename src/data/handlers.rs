@@ -125,6 +125,26 @@ impl SubTask {
 
         Ok(())
     }
+
+    pub async fn edit_description(
+        &self,
+        new_description: &str,
+        pool: &SqlitePool,
+    ) -> anyhow::Result<()> {
+        sqlx::query!(
+            r#"
+        UPDATE sub_tasks
+        SET description = ?1
+        WHERE id = ?2
+        "#,
+            new_description,
+            self.id
+        )
+        .execute(pool)
+        .await?;
+
+        Ok(())
+    }
 }
 
 impl TaskDetailManager {
@@ -167,6 +187,25 @@ impl TaskDetailManager {
             task_detail.task.delete(pool).await?;
         }
         self.list.retain(|td| td.task.id != task_id);
+        Ok(())
+    }
+
+    pub async fn edit_subtask_description(
+        &mut self,
+        task_id: i64,
+        subtask_id: i64,
+        new_descripton: &str,
+        pool: &SqlitePool,
+    ) -> anyhow::Result<()> {
+        if let Some(subtask) = self
+            .list
+            .iter_mut()
+            .find(|td| td.task.id == task_id)
+            .and_then(|td| td.subtasks.iter_mut().find(|st| st.id == subtask_id))
+        {
+            subtask.edit_description(new_descripton, pool).await?;
+            subtask.description = String::from(new_descripton)
+        }
         Ok(())
     }
 }

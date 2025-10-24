@@ -37,6 +37,25 @@ async fn main() -> anyhow::Result<()> {
     println!("===== AFTER TASK DELETE =====");
     debug_print(&manager);
 
+    let t1 =
+        Task::create_task(&pool, NewTask::new("This will be updated from the manager")).await?;
+    let sub_a1 = t1.add_sub_task(&pool, "text to update").await?;
+
+    let tasks = Task::get_pending_tasks(&pool).await?;
+    let subs = SubTask::get_pending_sub_tasks(&pool).await?;
+
+    let mut manager = TaskDetailManager::build_task_details(tasks, subs);
+
+    println!("===== BEFORE THE UPDATE =====");
+    debug_print(&manager);
+
+    manager
+        .edit_subtask_description(t1.id, sub_a1.id, "the new description", &pool)
+        .await?;
+
+    println!("===== AFTER THE UPDATE =====");
+    debug_print(&manager);
+
     Ok(())
 }
 
