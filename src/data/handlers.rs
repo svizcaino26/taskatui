@@ -275,4 +275,14 @@ impl TaskDetailManager {
 
         Ok(())
     }
+
+    pub async fn add_task(&mut self, title: &str, pool: &SqlitePool) -> anyhow::Result<()> {
+        let new_task = Task::create_task(pool, NewTask::new(title)).await?;
+        self.list.push(TaskDetail {
+            task: new_task,
+            subtasks: vec![],
+        });
+
+        Ok(())
+    }
 }

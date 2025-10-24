@@ -59,6 +59,10 @@ async fn main() -> anyhow::Result<()> {
         .edit_task_description("the new task description", t1.id, &pool)
         .await?;
 
+    manager
+        .add_task("This is created from the manager", &pool)
+        .await?;
+
     println!("===== AFTER THE UPDATE =====");
     debug_print(&manager);
 
