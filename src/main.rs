@@ -52,6 +52,9 @@ async fn main() -> anyhow::Result<()> {
     manager
         .edit_subtask_description(t1.id, sub_a1.id, "the new description", &pool)
         .await?;
+    manager
+        .edit_task_title("the new title", t1.id, &pool)
+        .await?;
 
     println!("===== AFTER THE UPDATE =====");
     debug_print(&manager);
