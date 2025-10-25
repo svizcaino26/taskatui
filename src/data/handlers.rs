@@ -61,7 +61,7 @@ impl Task {
         Ok(())
     }
 
-    pub async fn complete_task(&self, pool: &SqlitePool) -> anyhow::Result<()> {
+    pub async fn complete(&self, pool: &SqlitePool) -> anyhow::Result<()> {
         let id = self.id;
         sqlx::query!(
             r#"
@@ -70,6 +70,21 @@ impl Task {
         WHERE id = ?1
         "#,
             id
+        )
+        .execute(pool)
+        .await?;
+
+        Ok(())
+    }
+
+    pub async fn complete_children(&self, pool: &SqlitePool) -> anyhow::Result<()> {
+        sqlx::query!(
+            r#"
+                UPDATE sub_tasks
+                SET completed = true
+                WHERE task_id = ?1
+            "#,
+            self.id
         )
         .execute(pool)
         .await?;
@@ -181,17 +196,34 @@ impl SubTask {
 
         Ok(())
     }
+
+    async fn complete(&self, pool: &SqlitePool) -> anyhow::Result<()> {
+        sqlx::query!(
+            r#"
+                UPDATE sub_tasks
+                SET completed = true
+                WHERE id = ?1
+            "#,
+            self.id
+        )
+        .execute(pool)
+        .await?;
+        Ok(())
+    }
 }
 
 impl TaskDetailManager {
-    pub fn build_task_details(tasks: Vec<Task>, sub_tasks: Vec<SubTask>) -> Self {
+    pub async fn init(pool: &SqlitePool) -> anyhow::Result<Self> {
+        let tasks = Task::get_pending_tasks(pool).await?;
+        let sub_tasks = SubTask::get_pending_sub_tasks(pool).await?;
+
         let mut subtask_map: HashMap<i64, Vec<SubTask>> = HashMap::new();
 
         sub_tasks.into_iter().for_each(|st| {
             subtask_map.entry(st.task_id).or_default().push(st);
         });
 
-        Self {
+        Ok(Self {
             list: tasks
                 .into_iter()
                 .map(|task| {
@@ -199,7 +231,7 @@ impl TaskDetailManager {
                     TaskDetail { task, subtasks }
                 })
                 .collect(),
-        }
+        })
     }
 
     pub async fn remove_subtask(
@@ -280,7 +312,7 @@ impl TaskDetailManager {
         let new_task = Task::create_task(pool, NewTask::new(title)).await?;
         self.list.push(TaskDetail {
             task: new_task,
-            subtasks: vec![],
+            subtasks: Vec::new(),
         });
 
         Ok(())
@@ -296,6 +328,31 @@ impl TaskDetailManager {
             let new_subtask = task_detail.task.add_sub_task(pool, description).await?;
             task_detail.subtasks.push(new_subtask);
         }
+        Ok(())
+    }
+
+    pub async fn complete_subtask(
+        &mut self,
+        task_id: i64,
+        subtask_id: i64,
+        pool: &SqlitePool,
+    ) -> anyhow::Result<()> {
+        if let Some(task_detail) = self.list.iter_mut().find(|td| td.task.id == task_id) {
+            if let Some(st) = task_detail.subtasks.iter().find(|st| st.id == subtask_id) {
+                st.complete(pool).await?;
+            }
+            task_detail.subtasks.retain(|st| st.id != subtask_id);
+        }
+        Ok(())
+    }
+
+    pub async fn complete_task(&mut self, task_id: i64, pool: &SqlitePool) -> anyhow::Result<()> {
+        if let Some(task_detail) = self.list.iter().find(|td| td.task.id == task_id) {
+            task_detail.task.complete(pool).await?;
+            task_detail.task.complete_children(pool).await?;
+        }
+        self.list.retain(|td| td.task.id != task_id);
+
         Ok(())
     }
 }
